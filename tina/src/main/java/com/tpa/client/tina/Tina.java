@@ -33,7 +33,7 @@ import com.tpa.client.tina.utils.ClassUtils;
 import com.tpa.client.tina.utils.JSONHelper;
 import com.tpa.client.tina.utils.Schedulers;
 import com.tpa.client.tina.utils.UrlUtils;
-import com.zbj.comm.ConfigId;
+import com.tpa.comm.ConfigId;
 
 import java.io.IOException;
 import java.lang.annotation.Retention;
@@ -171,7 +171,7 @@ public class Tina {
         return this;
     }
 
-    public Tina mediaType(MediaType mediaType){
+    public Tina mediaType(MediaType mediaType) {
         mMediaType = mediaType;
         return this;
     }
@@ -398,9 +398,8 @@ public class Tina {
                                 cacheTempKey = UrlUtils.generatePathWithoutParams(cache.key(), concurrentRequest);
                             }
                             cacheKey = cacheTempKey;
-                        }
-                        else {
-                            cacheKey =null;
+                        } else {
+                            cacheKey = null;
                         }
 
                         /**
@@ -626,8 +625,7 @@ public class Tina {
                                 cacheTempKey = UrlUtils.generatePathWithoutParams(cache.key(), chainRequest);
                             }
                             cacheKey = cacheTempKey;
-                        }
-                        else {
+                        } else {
                             cacheKey = null;
                         }
 
@@ -861,8 +859,7 @@ public class Tina {
                                 cacheTempKey = UrlUtils.generatePathWithoutParams(cache.key(), tinaRequest);
                             }
                             cacheKey = cacheTempKey;
-                        }
-                        else {
+                        } else {
                             cacheKey = null;
                         }
 
@@ -908,7 +905,7 @@ public class Tina {
                         public void run() {
                             if (callBack != null) {
                                 callBack.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
-                            } else if (cacheCallBack != null){
+                            } else if (cacheCallBack != null) {
                                 cacheCallBack.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
                             }
                         }
@@ -935,7 +932,7 @@ public class Tina {
                         public void run() {
                             if (callBack != null) {
                                 callBack.onFail(new TinaException(TinaException.OTHER_EXCEPTION, response.code() + " " + response.message()));
-                            } else if (cacheCallBack != null){
+                            } else if (cacheCallBack != null) {
                                 cacheCallBack.onFail(new TinaException(TinaException.OTHER_EXCEPTION, response.code() + " " + response.message()));
                             }
                             if (endCallBack != null) {
@@ -960,7 +957,7 @@ public class Tina {
                         public void run() {
                             if (callBack != null) {
                                 callBack.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
-                            } else if (cacheCallBack != null){
+                            } else if (cacheCallBack != null) {
                                 cacheCallBack.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
                             }
                             if (endCallBack != null) {
@@ -985,11 +982,9 @@ public class Tina {
         Class clazz;
         if (callBack != null) {
             clazz = callBack.getClass();
-        }
-        else if (cacheCallBack != null){
+        } else if (cacheCallBack != null) {
             clazz = cacheCallBack.getClass();
-        }
-        else {
+        } else {
             handler.postAtTime(new Runnable() {
                 @Override
                 public void run() {
@@ -1032,7 +1027,7 @@ public class Tina {
                 public void run() {
                     if (callBack != null) {
                         callBack.onSuccess(respBody);
-                    } else if (cacheCallBack != null){
+                    } else if (cacheCallBack != null) {
                         cacheCallBack.onSuccess(respBody);
                     }
                     if (endCallBack != null) {
@@ -1074,7 +1069,7 @@ public class Tina {
                 public void run() {
                     if (callBack != null) {
                         callBack.onFail(new TinaException(filterResult.errorCode, filterResult.errorMsg));
-                    } else if (cacheCallBack != null){
+                    } else if (cacheCallBack != null) {
                         cacheCallBack.onFail(new TinaException(filterResult.errorCode, filterResult.errorMsg));
                     }
                     if (endCallBack != null) {
@@ -1088,7 +1083,8 @@ public class Tina {
     }
 
     /**
-     *  生成request
+     * 生成request
+     *
      * @param req
      * @param post
      * @param get

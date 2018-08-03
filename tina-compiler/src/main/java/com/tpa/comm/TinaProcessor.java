@@ -6,7 +6,6 @@ import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
-import com.tpa.comm.ConfigId;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -25,7 +24,7 @@ import javax.lang.model.element.TypeElement;
  * Created by tangqianfeng on 17/3/4.
  */
 @AutoService(Processor.class)
-public class TinaProcessor extends AbstractProcessor{
+public class TinaProcessor extends AbstractProcessor {
 
     private boolean mIsFileCreated = false;
 
@@ -45,8 +44,8 @@ public class TinaProcessor extends AbstractProcessor{
             if (ee instanceof TypeElement) {
                 String name = ee.getAnnotation(ConfigId.class).value();
 
-                ParameterSpec parameterSpec = ParameterSpec.builder(int.class,"tinaType")
-                        .addAnnotation(ClassName.get("com.tpa.client.tina.Tina","TinaType"))
+                ParameterSpec parameterSpec = ParameterSpec.builder(int.class, "tinaType")
+                        .addAnnotation(ClassName.get("com.tpa.client.tina.Tina", "TinaType"))
                         .build();
 
                 MethodSpec methodSpec1 = MethodSpec.methodBuilder("build")
@@ -54,13 +53,13 @@ public class TinaProcessor extends AbstractProcessor{
                         .returns(ClassName.get("com.tpa.client.tina", "Tina"))
 //                    .addParameter(int.class, "tinaType")
                         .addParameter(parameterSpec)
-                        .addStatement("return com.tpa.client.tina.Tina.build($N).config($S)", "tinaType",name)
+                        .addStatement("return com.tpa.client.tina.Tina.build($N).config($S)", "tinaType", name)
                         .build();
 
                 MethodSpec methodSpec2 = MethodSpec.methodBuilder("build")
                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                         .returns(ClassName.get("com.tpa.client.tina", "Tina"))
-                        .addStatement("return com.tpa.client.tina.Tina.build($L).config($S)", 10009 , name)
+                        .addStatement("return com.tpa.client.tina.Tina.build($L).config($S)", 10009, name)
                         .build();
 
                 TypeSpec tinaType = TypeSpec.classBuilder(name + "Tina")
