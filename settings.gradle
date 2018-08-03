@@ -1,0 +1,4 @@
+include ':app'
+include ':tina'
+include ':tina-compiler'
+include ':tina-annotation'
