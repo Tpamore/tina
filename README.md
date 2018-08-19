@@ -9,8 +9,7 @@
 5.  response数自动校验&逻辑处理&数据注入。
 6.  支持restful风格。
 7.  请求本地缓存。
-8.  业务解耦。 
-9. 请求生命周期可伴随activity。
+8. 请求生命周期可伴随activity。
 
 ## 初始化
 
@@ -50,7 +49,7 @@ A-->End
 
 
 ```java
-Request request = new Request();
+TinaBaseRequest request = new TinaBaseRequest();
 Tina.build()
         .call(request)
         .callBack(new TinaSingleCallBack<Response>() {
@@ -85,7 +84,7 @@ C-->End
 
 #### 代码实现
 ```java
-Request request = new Request();
+TinaBaseRequest request = new TinaBaseRequest();
 Tina.build(Tina.CHAINS)
         .call(request)
         .call(request)
@@ -154,7 +153,7 @@ B--> End
 
 #### 代码实现
 ```java
-Request request = new Request();
+TinaBaseRequest request = new TinaBaseRequest();
 Tina.build(Tina.CONCURRENT)
         .call(request)
         .call(request)
