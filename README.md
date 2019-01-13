@@ -49,15 +49,15 @@ A-->End
 
 
 ```java
-    @Post("url")
-    public class Reqest extends TinaBaseRequest{
+@Post("url")
+public class Reqest extends TinaBaseRequest{
 
-        private String name = "tqf";
-
-        private String sex = "man";
+   private String name = "tqf";
+   private String sex = "man";
         
-    }
+ }
 
+------------------------------------------------------
 
 Reqest request = new Reqest();
 Tina.build()
@@ -95,14 +95,15 @@ C-->End
 #### 代码实现
 ```java
 @Post("url")
-    public class Reqest extends TinaBaseRequest{
+public class Reqest extends TinaBaseRequest{
 
-        private String name = "tqf";
-
-        private String sex = "man";
+   private String name = "tqf";
+   private String sex = "man";
         
-    }
+ }
     
+----------------------------------------
+
 Reqest request = new Reqest();
 Tina.build(Tina.CHAINS)
         .call(request)
@@ -173,13 +174,14 @@ B--> End
 #### 代码实现
 ```java
 @Post("url")
-    public class Reqest extends TinaBaseRequest{
+public class Reqest extends TinaBaseRequest{
 
-        private String name = "tqf";
-
-        private String sex = "man";
+   private String name = "tqf";
+   private String sex = "man";
         
-    }
+ }
+ 
+ ----------------------------------------------------------
     
 Reqest request = new Reqest();
 Tina.build(Tina.CONCURRENT)
