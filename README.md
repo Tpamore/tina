@@ -49,7 +49,17 @@ A-->End
 
 
 ```java
-TinaBaseRequest request = new TinaBaseRequest();
+    @Post("url")
+    public class Reqest extends TinaBaseRequest{
+
+        private String name = "tqf";
+
+        private String sex = "man";
+        
+    }
+
+
+Reqest request = new Reqest();
 Tina.build()
         .call(request)
         .callBack(new TinaSingleCallBack<Response>() {
@@ -84,7 +94,16 @@ C-->End
 
 #### 代码实现
 ```java
-TinaBaseRequest request = new TinaBaseRequest();
+@Post("url")
+    public class Reqest extends TinaBaseRequest{
+
+        private String name = "tqf";
+
+        private String sex = "man";
+        
+    }
+    
+Reqest request = new Reqest();
 Tina.build(Tina.CHAINS)
         .call(request)
         .call(request)
@@ -153,7 +172,16 @@ B--> End
 
 #### 代码实现
 ```java
-TinaBaseRequest request = new TinaBaseRequest();
+@Post("url")
+    public class Reqest extends TinaBaseRequest{
+
+        private String name = "tqf";
+
+        private String sex = "man";
+        
+    }
+    
+Reqest request = new Reqest();
 Tina.build(Tina.CONCURRENT)
         .call(request)
         .call(request)
