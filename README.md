@@ -218,6 +218,20 @@ Tina.build(Tina.CONCURRENT)
         .request();
 ```
 
+## 混淆
+```java
+
+-keep public class * extends com.tpa.client.tina.model.TinaBaseRequest {
+    public void set*(***);
+    public *** get*();
+    public *** is*();
+}
+
+-keep public class * extends ${BaseResponseClass} {
+    *;
+}
+
+```
 
 ## 统一的开始回调和结束回调
 ```java
