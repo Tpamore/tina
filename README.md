@@ -26,7 +26,7 @@ public interface TinaConfig {
     public @NonNull String getHost();
 
     /** 成功请求过滤 **/
-    public @Nullable TinaFilter getTinaFilter();
+    public @Nonable TinaFilter getTinaFilter();
 
     /** request数据转换器 **/
     public @Nullable TinaConvert getRequestConvert();
