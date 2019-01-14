@@ -111,7 +111,7 @@ Tina.build(Tina.CHAINS)
         .call(request)
         .callBack(new TinaChainCallBack<TinaBaseResponse>() {
             @Override
-            public Object onSuccess(Object feedbackResult,                                                 TinaBaseResponse response) {
+            public Object onSuccess(Object feedbackResult,TinaBaseResponse response) {
                 return null;
             }
 
@@ -122,7 +122,7 @@ Tina.build(Tina.CHAINS)
         })
         .callBack(new TinaChainCallBack<TinaBaseResponse>() {
             @Override
-            public Object onSuccess(Object feedbackResult,                            TinaBaseResponse response) {
+            public Object onSuccess(Object feedbackResult,TinaBaseResponse response) {
                 return null;
             }
 
@@ -133,7 +133,7 @@ Tina.build(Tina.CHAINS)
         })
         .callBack(new TinaChainCallBack<TinaBaseResponse>() {
             @Override
-            public Object onSuccess(Object feedbackResult,                          TinaBaseResponse response) {
+            public Object onSuccess(Object feedbackResult, TinaBaseResponse response) {
                 return null;
             }
 
