@@ -519,17 +519,8 @@ public class Tina {
             /**
              * 缓存服务端返回的数据
              */
-            if (cache != null && cacheKey != null) {
-                CacheType cacheType = cache.type();
-                if (cacheType == CacheType.TARGET) {
-                    int expire = cache.expire();
-                    TimeUnit unit = cache.unit();
-                    if (expire > 0) {
-                        getConfig().mDiskCache.put(cacheKey, body, (int) TimeUnit.SECONDS.convert(expire, unit));
-                    } else {
-                        getConfig().mDiskCache.put(cacheKey, body);
-                    }
-                }
+            if (cache != null && cacheKey != null && cache.type() != CacheType.HOLDER) {
+                storeRequestCache(body, cache, cacheKey);
             }
             return true;
         } else {
@@ -755,17 +746,8 @@ public class Tina {
             /**
              * 缓存服务端返回的数据
              */
-            if (cache != null && cacheKey != null) {
-                CacheType cacheType = cache.type();
-                if (cacheType == CacheType.TARGET) {
-                    int expire = cache.expire();
-                    TimeUnit unit = cache.unit();
-                    if (expire > 0) {
-                        getConfig().mDiskCache.put(cacheKey, body, (int) TimeUnit.SECONDS.convert(expire, unit));
-                    } else {
-                        getConfig().mDiskCache.put(cacheKey, body);
-                    }
-                }
+            if (cache != null && cacheKey != null && cache.type() != CacheType.HOLDER) {
+                storeRequestCache(body, cache, cacheKey);
             }
             return true;
 
@@ -994,22 +976,8 @@ public class Tina {
                 }
             }, tag, SystemClock.uptimeMillis());
 
-            /**
-             * 缓存服务端返回的数据
-             */
             if (cache != null && cacheKey != null) {
-                CacheType cacheType = cache.type();
-                if (cacheType == CacheType.TARGET) {
-                    int expire = cache.expire();
-                    TimeUnit unit = cache.unit();
-                    if (expire > 0) {
-                        getConfig().mDiskCache.put(cacheKey, bytes, (int) TimeUnit.SECONDS.convert(expire, unit));
-                    } else {
-                        getConfig().mDiskCache.put(cacheKey, bytes);
-                    }
-                } else if (cacheType == CacheType.HOLDER) {
-                    getConfig().mDiskCache.put(cacheKey, bytes);
-                }
+                storeRequestCache(bytes, cache, cacheKey);
             }
 
             return true;
@@ -1036,22 +1004,8 @@ public class Tina {
                 }
             }, tag, SystemClock.uptimeMillis());
 
-            /**
-             * 缓存服务端返回的数据
-             */
             if (cache != null && cacheKey != null) {
-                CacheType cacheType = cache.type();
-                if (cacheType == CacheType.TARGET) {
-                    int expire = cache.expire();
-                    TimeUnit unit = cache.unit();
-                    if (expire > 0) {
-                        getConfig().mDiskCache.put(cacheKey, bytes, (int) TimeUnit.SECONDS.convert(expire, unit));
-                    } else {
-                        getConfig().mDiskCache.put(cacheKey, bytes);
-                    }
-                } else if (cacheType == CacheType.HOLDER) {
-                    getConfig().mDiskCache.put(cacheKey, bytes);
-                }
+                storeRequestCache(bytes, cache, cacheKey);
             }
 
             return true;
@@ -1080,6 +1034,27 @@ public class Tina {
             return true;
         }
 
+    }
+
+    /**
+     * 缓存服务端返回的数据
+     * @param bytes
+     * @param cache
+     * @param cacheKey
+     */
+    private void storeRequestCache(byte[] bytes, Cache cache, String cacheKey) {
+        CacheType cacheType = cache.type();
+        if (cacheType == CacheType.TARGET) {
+            int expire = cache.expire();
+            TimeUnit unit = cache.unit();
+            if (expire > 0) {
+                getConfig().mDiskCache.put(cacheKey, bytes, (int) TimeUnit.SECONDS.convert(expire, unit));
+            } else {
+                getConfig().mDiskCache.put(cacheKey, bytes);
+            }
+        } else if (cacheType == CacheType.HOLDER) {
+            getConfig().mDiskCache.put(cacheKey, bytes);
+        }
     }
 
     /**
