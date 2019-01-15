@@ -280,7 +280,7 @@ Tina.build()
 #### 用法
 ```java
 @AutoMode
-public class AnswererListResponse extends TinaBaseResponse {
+public class AnswererListResponse {
 }
 ```
 被@AutoModel注解的resposne会递归遍历整个response model，填充所有空对象。
@@ -309,7 +309,7 @@ do(data.getData1().getData2());
 #### 使用
 ```java
 @AutoMode
-public class AnswererListResponse extends TinaBaseResponse {
+public class AnswererListResponse {
     @NumberScale(2)
     private String data;
 }
