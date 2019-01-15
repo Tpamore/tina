@@ -22,6 +22,5 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':tina')
-    implementation project(':tina-annotation')
-    annotationProcessor project(':tina-compiler')
+    annotationProcessor 'com.tpa.client:tina-compiler:1.0.0'
 }

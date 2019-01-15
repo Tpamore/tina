@@ -1,8 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 
-group = 'com.github.tpa'
-
 android {
     compileSdkVersion 27
 
@@ -24,8 +22,10 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'org.aspectj:aspectjrt:1.8.10'
-    compile 'com.squareup.okhttp3:okhttp:3.11.0'
-    compile 'com.alibaba:fastjson:1.2.47'
-    implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation project(':tina-annotation')
+    api 'com.squareup.okhttp3:okhttp:3.11.0'
+    api 'com.alibaba:fastjson:1.2.47'
+    api 'com.android.support:appcompat-v7:27.1.1'
+    api 'com.tpa.client:tina-annotation:1.0.0'
 }
+
+apply from: rootProject.file('gradle/publish.gradle')

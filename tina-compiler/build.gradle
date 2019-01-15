@@ -1,8 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'com.github.dcendents.android-maven'
 
-group = 'com.github.tpa'
-
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
@@ -11,5 +9,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.google.auto.service:auto-service:1.0-rc3'
     implementation 'com.squareup:javapoet:1.9.0'
-    implementation project(':tina-annotation')
+    compile 'com.tpa.client:tina-annotation:1.0.0'
 }
+
+apply from: rootProject.file('gradle/publish.gradle')
