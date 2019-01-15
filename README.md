@@ -21,12 +21,14 @@ dependencies {
 ## 混淆
 ```java
 
+## request混淆
 -keep public class * extends com.tpa.client.tina.model.TinaBaseRequest {
     public void set*(***);
     public *** get*();
     public *** is*();
 }
 
+## response混淆
 -keep public class * extends ${BaseResponseClass} {
     *;
 }
@@ -116,18 +118,6 @@ Reqest request = new Reqest();
 Tina.build(Tina.CHAINS)
         .call(request)
         .call(request)
-        .call(request)
-        .callBack(new TinaChainCallBack<TinaBaseResponse>() {
-            @Override
-            public Object onSuccess(Object feedbackResult,TinaBaseResponse response) {
-                return null;
-            }
-
-            @Override
-            public void onFail(TinaException e) {
-
-            }
-        })
         .callBack(new TinaChainCallBack<TinaBaseResponse>() {
             @Override
             public Object onSuccess(Object feedbackResult,TinaBaseResponse response) {
@@ -186,16 +176,6 @@ Reqest request = new Reqest();
 Tina.build(Tina.CONCURRENT)
         .call(request)
         .call(request)
-        .call(request)
-        .callBack(new TinaSingleCallBack<TinaBaseResponse>() {
-            @Override
-            public void onSuccess(TinaBaseResponse response) {                
-            }
-
-            @Override
-            public void onFail(TinaException e) {
-            }
-        })
         .callBack(new TinaSingleCallBack<TinaBaseResponse>() {
             @Override
             public void onSuccess(TinaBaseResponse response) {
