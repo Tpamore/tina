@@ -1188,7 +1188,7 @@ public class Tina {
     /**
      * @return get okhttpClient instance
      */
-    public OkHttpClient getmClient() {
+    public OkHttpClient getClient() {
         return targetConfig == null ? defaultConfig.mClient : targetConfig.mClient;
     }
 
