@@ -1,5 +1,4 @@
 # Tina
-======
 
 ## 特点
 1.  构造式编码。
@@ -52,7 +51,7 @@ public interface TinaConfig {
     /** 成功请求过滤 **/
     public @Nonable TinaFilter getTinaFilter();
 
-    /** request数据转换器 **/
+    /** request数据转换器,一般用来加密请求body数据 **/
     public @Nullable TinaConvert getRequestConvert();
 }
 
