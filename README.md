@@ -245,19 +245,13 @@ Tina.build()
                 })
          ...
 ```
-## 其他数据类型支持
+## 通过过滤器定制response类型
 ```java
          /**
          * 请求数据类型是bitmap类型
          */
         Tina.build()
-                .filter(new TinaFilter() {
-                    @Override
-                    public TinaFilterResult filter(TinaBaseRequest tinaBaseRequest, byte[] bytes, Class aClass) {
-                        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                        return new TinaFilterResult(FilterCode.SUCCESS , bitmap);
-                    }
-                })
+                .filter(BitmapFilter.build())
                 .callBack(request)
                 .callBack(new TinaSingleCallBack<Bitmap>() {
                     @Override

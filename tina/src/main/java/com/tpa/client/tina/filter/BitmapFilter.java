@@ -25,4 +25,8 @@ public class BitmapFilter implements TinaFilter{
         }
         return new TinaFilterResult(FilterCode.SUCCESS , bitmap);
     }
+
+    public static TinaFilter build() {
+        return new BitmapFilter();
+    }
 }
