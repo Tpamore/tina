@@ -22,8 +22,8 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'org.aspectj:aspectjrt:1.8.10'
-    api 'com.squareup.okhttp3:okhttp:3.11.0'
-    api 'com.alibaba:fastjson:1.2.47'
+    api 'com.squareup.okhttp3:okhttp:3.12.1'
+    api 'com.alibaba:fastjson:1.1.70.android'
     api 'com.android.support:appcompat-v7:27.1.1'
     api 'com.tpa.client:tina-annotation:1.0.0'
 }

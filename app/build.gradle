@@ -17,10 +17,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(':tina')
+    api 'com.tpa.client:tina:1.0.1'
     annotationProcessor 'com.tpa.client:tina-compiler:1.0.0'
 }
