@@ -1,5 +1,5 @@
 # Tina
-一个基于okhttp封装的网络库
+======
 
 ## 特点
 1.  构造式编码。
@@ -10,6 +10,30 @@
 6.  支持restful风格。
 7.  请求本地缓存。
 8. 请求生命周期可伴随activity。
+
+## 引用
+```groovy
+dependencies {
+    api 'com.tpa.client:tina:1.0.1'
+    annotationProcessor 'com.tpa.client:tina-compiler:1.0.0'
+
+}
+```
+## 混淆
+```java
+
+-keep public class * extends com.tpa.client.tina.model.TinaBaseRequest {
+    public void set*(***);
+    public *** get*();
+    public *** is*();
+}
+
+-keep public class * extends ${BaseResponseClass} {
+    *;
+}
+
+```
+
 
 ## 初始化
 
@@ -39,13 +63,7 @@ Tina.initConfig(tinaConfig);
 
 #### 流程图示
 
-
-```
-graph LR
-start --> A
-A-->End
-```
-
+![lc](png/1.jpg)
 
 
 ```java
@@ -81,16 +99,7 @@ Tina.build()
 
 #### 流程图示
 
-
-```
-graph LR
-start-->A
-A-->B
-B-->C
-C-->End
-```
-
-
+![lc1](png/2.jpg)
 
 #### 代码实现
 ```java
@@ -160,16 +169,7 @@ Tina.build(Tina.CHAINS)
 ## 并发式请求
 #### 流程图示
 
-
-```
-graph LR
-start --> A
-start --> B
-A --> End
-B--> End
-```
-
-
+![lc2](png/3.jpg)
 
 #### 代码实现
 ```java
@@ -216,21 +216,6 @@ Tina.build(Tina.CONCURRENT)
             }
         })
         .request();
-```
-
-## 混淆
-```java
-
--keep public class * extends com.tpa.client.tina.model.TinaBaseRequest {
-    public void set*(***);
-    public *** get*();
-    public *** is*();
-}
-
--keep public class * extends ${BaseResponseClass} {
-    *;
-}
-
 ```
 
 ## 统一的开始回调和结束回调
