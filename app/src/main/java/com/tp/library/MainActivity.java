@@ -18,10 +18,10 @@ public class MainActivity extends Activity {
          * 日志tag ---> okhttp
          */
         Tina.build()
-                .call(new LoginContract.LoginRequest())
-                .callBack(new TinaSingleCallBack<LoginContract.LoginResponse>() {
+                .call(new LoginContract.Request())
+                .callBack(new TinaSingleCallBack<LoginContract.Response>() {
                     @Override
-                    public void onSuccess(LoginContract.LoginResponse response) {
+                    public void onSuccess(LoginContract.Response response) {
 
                     }
 

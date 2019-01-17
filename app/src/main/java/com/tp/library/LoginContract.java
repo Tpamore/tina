@@ -11,13 +11,13 @@ import com.tpa.client.tina.model.TinaBaseRequest;
 public interface LoginContract {
 
     @Post("xxx/xxx/xxx")
-    class LoginRequest extends TinaBaseRequest {
+    class Request extends TinaBaseRequest {
         public String sex = "男";
         public String name = "tqf";
     }
 
     @AutoMode
-    class LoginResponse {
+    class Response {
         public String code;
         public String message;
     }
