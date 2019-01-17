@@ -399,4 +399,28 @@ Tina.addConfig(new Config());
 PayTina.build()...
 
 ```
-  
+
+## live templates
+
+### 导入设置
+
+首先将settings.jar下载下来保持到本地 [>>>>> settings.jar](setting/settings.jar)
+
+**打开 AndroidStudio ，选择 Android Studio - File  - Import Setttings**      
+
+选择你刚刚下载的setting.jar  
+
+### abbreviation
+- tina_contract : 生成model contract
+- tina_singleReq : 生成简单请求
+- tina_singleReq2 : 生成带有endCallBack和startCallBack的简单请求
+- tina_chainReq : 生成链式请求
+- tina_chainReq2 : 生成带有endCallBack和startCallBack的链式请求
+- tina_concurrentReq : 生成并发式请求
+- tina_concurrentReq2 : 生成带有endCallBack和startCallBack的并发式请求
+
+![lc5](png/5.gif)
+![lc6](png/6.gif)
+
+> 只提供简单参考，可根据自己的业务需求修改live templates
+
