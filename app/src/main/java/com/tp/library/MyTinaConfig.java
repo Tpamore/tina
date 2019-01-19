@@ -20,7 +20,7 @@ import okhttp3.OkHttpClient;
 
 public class MyTinaConfig implements TinaConfig{
 
-    public static final String host = "http://www.xxxx.com/";
+    public static final String host = "http://192.168.31.233:8080";
     Context context;
 
     public MyTinaConfig(Context context) {

@@ -10,10 +10,16 @@
 7.  请求本地缓存。
 8. 请求生命周期可伴随activity。
 
+## change
+### 1.1.0-beta
+- 合并HOLD和TARGET的缓存策略，简化使用繁琐度。
+- 修复在多线程读写请求缓存时，小几率出现数据错乱的bug。
+- 优化了部分代码
+
 ## 引用
 ```groovy
 dependencies {
-    api 'com.tpa.client:tina:1.0.1'
+    api 'com.tpa.client:tina:1.1.0-beta'
     annotationProcessor 'com.tpa.client:tina-compiler:1.0.0'
 
 }
@@ -84,12 +90,12 @@ Tina.build()
         .callBack(new TinaSingleCallBack<Response>() {
             @Override
             public void onSuccess(Response response) {
-                // TODO Auto-generated method stub
+
             }
 
             @Override
             public void onFail(TinaException e) {
-                // TODO Auto-generated method stub
+
             }
         })
         .request();
@@ -300,25 +306,34 @@ public class AnswererListResponse {
 
 ## request缓存注解@Cache
 ```java
-@Cache(key = "key" ，type = CacheType.TARGET , expire = 1000 , unit = TimeUnit.SECONDS)
-public class InitRequest extends TinaBaseRequest {
+@Cache(key = "key" , expire = 1000 , unit = TimeUnit.SECONDS)
+public class Request extends TinaBaseRequest {
 
 }
-key缺省值为 - url(支持Tina restful语法构建)
-type缺省值为 - CacheType.TARGET
-expire缺省值为 - 永久
-unit缺省值为 - TimeUnit.SECONDS
-```
-### 缓存双回调
-type = CacheType.HOLDER类缓存支持双回调
-```java
 Request request = new Request();
+
+// 单回调  命中缓存则不会发起网络请求
+Tina.build()
+        .call(request)
+        .callBack(new TinaSingleCallBack<Response>() {
+            @Override
+            public void onSuccess(Response response) {
+                //response
+            }
+            @Override
+            public void onFail(TinaException exception) {
+
+            }
+        })
+        .request();
+
+// 双回调 无论命中缓存与否 都会发起网络请求
 Tina.build()
         .call(request)
         .callBack(new TinaSingleCacheCallBack<Response>() {
             @Override
             public void onSuccess(Response response) {
-                //fresh response                    
+                //fresh response
             }
             @Override
             public void onCache(Response response) {
@@ -331,6 +346,10 @@ Tina.build()
         })
         .request();
 ```
+- key缺省值为 - url(支持Tina restful语法构建)
+- type缺省值为 - CacheType.TARGET
+- expire缺省值为 - 永久
+- unit缺省值为 - TimeUnit.SECONDS
 
 ## 关于restful
 > 支持 `POST`、`GET`、`PUT`、`DELETE`、`PATCH`请求。

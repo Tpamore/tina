@@ -58,7 +58,7 @@ public class Schedulers {
         return this;
     }
 
-    public void run(ZbjRunnable runnable) {
+    public void run(ERunnable runnable) {
         runnable.setCallBack(mCallback);
         switch (mScheduleType) {
             case IO:
@@ -107,18 +107,18 @@ public class Schedulers {
     }
 
     public static abstract class SRunnable<T extends Object> extends
-            ZbjRunnable {
+            ERunnable {
 
         @Override
         public void run() {
             long t1 = System.currentTimeMillis();
             final T result = callable();
-            if (callBack != null && result != null) {
+            if (mCallBack != null && result != null) {
                 handler.post(new Runnable() {
 
                     @Override
                     public void run() {
-                        callBack.onCallBack(result);
+                        mCallBack.onCallBack(result);
                     }
                 });
             }
@@ -127,18 +127,18 @@ public class Schedulers {
         public abstract T callable();
     }
 
-    public static abstract class SNullRunnable extends ZbjRunnable {
+    public static abstract class SNullRunnable extends ERunnable {
 
         @Override
         public void run() {
             long t1 = System.currentTimeMillis();
             callable();
-            if (callBack != null) {
+            if (mCallBack != null) {
                 handler.post(new Runnable() {
 
                     @Override
                     public void run() {
-                        callBack.onCallBack(null);
+                        mCallBack.onCallBack(null);
                     }
                 });
             }
@@ -146,18 +146,18 @@ public class Schedulers {
 
         @Override
         public void setCallBack(ScheduleCallBack callBack) {
-            this.callBack = callBack;
+            this.mCallBack = callBack;
         }
 
         public abstract void callable();
     }
 
-    private static abstract class ZbjRunnable implements Runnable {
+    private static abstract class ERunnable implements Runnable {
 
-        public ScheduleCallBack callBack;
+        public ScheduleCallBack mCallBack;
 
         public void setCallBack(ScheduleCallBack callBack) {
-            this.callBack = callBack;
+            this.mCallBack = callBack;
         }
 
     }

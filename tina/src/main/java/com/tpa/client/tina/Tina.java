@@ -25,7 +25,6 @@ import com.tpa.client.tina.callback.TinaEndCallBack;
 import com.tpa.client.tina.callback.TinaSingleCacheCallBack;
 import com.tpa.client.tina.callback.TinaSingleCallBack;
 import com.tpa.client.tina.callback.TinaStartCallBack;
-import com.tpa.client.tina.enu.CacheType;
 import com.tpa.client.tina.enu.FilterCode;
 import com.tpa.client.tina.model.TinaBaseRequest;
 import com.tpa.client.tina.utils.ACache;
@@ -77,7 +76,6 @@ public class Tina {
     private int requestType;
     private TinaBaseRequest tinaRequest;
     private TinaSingleCallBack callBack;
-    private TinaSingleCacheCallBack cacheCallBack;
 
     //链式请求
     private List<TinaBaseRequest> tinaBaseRequests;
@@ -198,15 +196,6 @@ public class Tina {
         return this;
     }
 
-    public Tina callBack(TinaSingleCacheCallBack<?> callBack) {
-        if (requestType == SINGLE) {
-            this.cacheCallBack = callBack;
-        } else {
-            throw new IllegalArgumentException("Request type don't match with TinaSingleCallBack! ");
-        }
-        return this;
-    }
-
     public Tina callBack(TinaChainCallBack<?> tinaChainCallBack) {
         if (requestType != CHAINS && requestType != CONCURRENT) {
             throw new IllegalArgumentException("Request type don't match with TinaChainCallBack!");
@@ -261,7 +250,7 @@ public class Tina {
         } else if (requestType == CONCURRENT) {
             concurrentRequests();
         } else {
-            singleRequest();
+            singleRequest(tinaRequest , callBack);
         }
         return this;
     }
@@ -327,28 +316,28 @@ public class Tina {
      * 并发请求
      */
     private void concurrentRequests() {
-        if (tinaBaseRequests.size() != tinaConcurrentCallBacks.size()) {
-            throw new IllegalArgumentException("The number of requests do not match , CONCURRENT");
-        }
         if (startCallBack != null) {
             startCallBack.start();
         }
 
         for (int i = 0; i < tinaBaseRequests.size(); i++) {
             TinaBaseRequest request = tinaBaseRequests.get(i);
-            TinaSingleCallBack callback = tinaConcurrentCallBacks.get(i);
+            TinaSingleCallBack callback = null;
+            if (i < tinaConcurrentCallBacks.size()) {
+                callback = tinaConcurrentCallBacks.get(i);
+            }
             concurrentRequest(request, callback);
         }
     }
 
-    private void concurrentRequest(final TinaBaseRequest concurrentRequest, final TinaSingleCallBack callback) {
+    private void concurrentRequest(final TinaBaseRequest sRequest, final TinaSingleCallBack sCallback) {
 
         Schedulers.subscribeOn(Schedulers.IO)
                 .callback(new Schedulers.ScheduleCallBack() {
                     @Override
                     public void onCallBack(Object result) {
                         Pack pack = (Pack) result;
-                        executeConcurrent(concurrentRequest, callback, pack.post, pack.get,
+                        executeConcurrent(sRequest, sCallback, pack.post, pack.get,
                                 pack.put, pack.patch, pack.delete, pack.url, pack.cacheKey, pack.cache, pack.body);
                     }
                 })
@@ -365,37 +354,37 @@ public class Tina {
                         Delete delete = null;
 
                         String urlTemp = null;
-                        if ((get = concurrentRequest.getClass().getAnnotation(Get.class)) != null) {
+                        if ((get = sRequest.getClass().getAnnotation(Get.class)) != null) {
                             String host = targetHost == null ? getConfig().hostUrl : targetHost;
-                            urlTemp = host + UrlUtils.generatePathWithParams(get.value(), concurrentRequest);
-                        } else if ((post = concurrentRequest.getClass().getAnnotation(Post.class)) != null) {
+                            urlTemp = host + UrlUtils.generatePathWithParams(get.value(), sRequest);
+                        } else if ((post = sRequest.getClass().getAnnotation(Post.class)) != null) {
                             String host = targetHost == null ? getConfig().hostUrl : targetHost;
-                            urlTemp = host + UrlUtils.generatePathWithoutParams(post.value(), concurrentRequest);
-                        } else if ((delete = concurrentRequest.getClass().getAnnotation(Delete.class)) != null) {
+                            urlTemp = host + UrlUtils.generatePathWithoutParams(post.value(), sRequest);
+                        } else if ((delete = sRequest.getClass().getAnnotation(Delete.class)) != null) {
                             String host = targetHost == null ? getConfig().hostUrl : targetHost;
-                            urlTemp = host + UrlUtils.generatePathWithParams(delete.value(), concurrentRequest);
-                        } else if ((put = concurrentRequest.getClass().getAnnotation(Put.class)) != null) {
+                            urlTemp = host + UrlUtils.generatePathWithParams(delete.value(), sRequest);
+                        } else if ((put = sRequest.getClass().getAnnotation(Put.class)) != null) {
                             String host = targetHost == null ? getConfig().hostUrl : targetHost;
-                            urlTemp = host + UrlUtils.generatePathWithoutParams(put.value(), concurrentRequest);
-                        } else if ((patch = concurrentRequest.getClass().getAnnotation(Patch.class)) != null) {
+                            urlTemp = host + UrlUtils.generatePathWithoutParams(put.value(), sRequest);
+                        } else if ((patch = sRequest.getClass().getAnnotation(Patch.class)) != null) {
                             String host = targetHost == null ? getConfig().hostUrl : targetHost;
-                            urlTemp = host + UrlUtils.generatePathWithoutParams(patch.value(), concurrentRequest);
+                            urlTemp = host + UrlUtils.generatePathWithoutParams(patch.value(), sRequest);
                         } else {
                             throw new IllegalArgumentException("request annotation is not exist");
                         }
                         final String url = urlTemp;
 
                         final String cacheKey;
-                        final Cache cache = concurrentRequest.getClass().getAnnotation(Cache.class);
+                        final Cache cache = sRequest.getClass().getAnnotation(Cache.class);
                         if (cache != null) {
                             if (getConfig().mDiskCache == null) {
-                                throw new IllegalArgumentException("please check okhttp cache config is right , #" + concurrentRequest.getClass().getCanonicalName());
+                                throw new IllegalArgumentException("please check okhttp cache config is right , #" + sRequest.getClass().getCanonicalName());
                             }
                             String cacheTempKey = null;
                             if ("".equals(cache.key())) {
                                 cacheTempKey = url;
                             } else {
-                                cacheTempKey = UrlUtils.generatePathWithoutParams(cache.key(), concurrentRequest);
+                                cacheTempKey = UrlUtils.generatePathWithoutParams(cache.key(), sRequest);
                             }
                             cacheKey = cacheTempKey;
                         } else {
@@ -406,27 +395,37 @@ public class Tina {
                          * 缓存数据返回
                          */
                         if (cache != null && getConfig().mDiskCache != null) {
-                            CacheType cacheType = cache.type();
-                            byte[] cacheResponse = getConfig().mDiskCache.getAsBinary(cacheKey);
+                            byte[] cacheResponse = getCacheBytes(cacheKey);
                             if (cacheResponse != null) {
-                                if (cacheType == CacheType.TARGET) {
-                                    boolean s = mapConcurrentRequest(cacheResponse, callback, concurrentRequest, null, cacheKey);
+                                if (sCallback != null && sCallback instanceof TinaSingleCacheCallBack) {
+                                    onHoldCacheReturn(sRequest , cacheResponse , (TinaSingleCacheCallBack) sCallback);
+                                } else {
+                                    boolean s = mapConcurrentRequest(cacheResponse, sCallback, sRequest , null, cacheKey);
+                                    /**
+                                     * 如果缓存出现不匹配的问题(不确定的缓存规则改变)，则重新请求
+                                     */
                                     if (s) {
+                                        hitBoom();
                                         return null;
                                     }
                                 }
                             }
                         }
-                        return new Pack(post, get, put, patch, delete, url, cacheKey, cache, convertRequest(JSONHelper.objToJson(concurrentRequest)));
+
+                        return new Pack(post, get, put, patch, delete, url, cacheKey, cache, convertRequest(JSONHelper.objToJson(sRequest)));
                     }
                 });
 
 
     }
 
-    private void executeConcurrent(final TinaBaseRequest concurrentRequest, final TinaSingleCallBack callback, Post post, Get get, Put put, Patch patch,
+    private synchronized byte[] getCacheBytes(String cacheKey) {
+        return getConfig().mDiskCache.getAsBinary(cacheKey);
+    }
+
+    private void executeConcurrent(final TinaBaseRequest sRequest, final TinaSingleCallBack sCallback, Post post, Get get, Put put, Patch patch,
                                    Delete delete, String url, final String cacheKey, final Cache cache, String rb) {
-        Request request = generateRequest(concurrentRequest, post, get, put, patch, delete, url, rb);
+        Request request = generateRequest(sRequest, post, get, put, patch, delete, url, rb);
         getConfig().mClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, final IOException e) {
@@ -435,7 +434,9 @@ public class Tina {
                     handler.postAtTime(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
+                            if (sCallback != null) {
+                                sCallback.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
+                            }
                         }
                     }, tag, SystemClock.uptimeMillis());
                 } finally {
@@ -452,12 +453,15 @@ public class Tina {
 
             @Override
             public void onResponse(Call call, final Response response) {
+                hitBoom();
                 if (!response.isSuccessful()) {
                     handler.postAtTime(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onFail(new TinaException(TinaException.OTHER_EXCEPTION, response.code() + " " + response.message()));
-                            if (endCallBack != null) {
+                            if (sCallback != null) {
+                                sCallback.onFail(new TinaException(TinaException.OTHER_EXCEPTION, response.code() + " " + response.message()));
+                            }
+                            if (endCallBack != null && concurrentEnd()) {
                                 handler.post(new Runnable() {
                                     @Override
                                     public void run() {
@@ -477,8 +481,10 @@ public class Tina {
                     handler.postAtTime(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
-                            if (endCallBack != null) {
+                            if (sCallback != null) {
+                                sCallback.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
+                            }
+                            if (endCallBack != null && concurrentEnd()) {
                                 handler.postAtTime(new Runnable() {
                                     @Override
                                     public void run() {
@@ -491,16 +497,33 @@ public class Tina {
                     }, tag, SystemClock.uptimeMillis());
                     return;
                 }
-                mapConcurrentRequest(bytes, callback, concurrentRequest, cache, cacheKey);
-
+                mapConcurrentRequest(bytes, sCallback, sRequest, cache, cacheKey);
 
             }
         });
     }
 
-    private boolean mapConcurrentRequest(byte[] body, final TinaSingleCallBack callback, TinaBaseRequest request, Cache cache, String cacheKey) {
-        hitBoom();
-        final TinaFilterResult filterResult = filter(request, body, ClassUtils.getGenericType(callback.getClass()));
+    private boolean mapConcurrentRequest(byte[] body, final TinaSingleCallBack sCallback, TinaBaseRequest sRequest, Cache cache, String cacheKey) {
+        Class clazz;
+        if (sCallback != null) {
+            clazz = sCallback.getClass();
+        } else {
+            handler.postAtTime(new Runnable() {
+                @Override
+                public void run() {
+                    if (endCallBack != null && concurrentEnd()) {
+                        endCallBack.end();
+                    }
+                }
+            }, tag, SystemClock.uptimeMillis());
+
+            if (cache != null && cacheKey != null) {
+                storeRequestCache(body, cache, cacheKey);
+            }
+            return true;
+        }
+
+        final TinaFilterResult filterResult = filter(sRequest, body, ClassUtils.getGenericType(sCallback.getClass()));
         final Object tr = filterResult.response;
         if (filterResult.code == FilterCode.SUCCESS) {
             if (tr != null && tr.getClass().isAnnotationPresent(AutoMode.class)) {
@@ -509,7 +532,7 @@ public class Tina {
             handler.postAtTime(new Runnable() {
                 @Override
                 public void run() {
-                    callback.onSuccess(tr);
+                    sCallback.onSuccess(tr);
                     if (endCallBack != null && concurrentEnd()) {
                         endCallBack.end();
                     }
@@ -519,7 +542,7 @@ public class Tina {
             /**
              * 缓存服务端返回的数据
              */
-            if (cache != null && cacheKey != null && cache.type() != CacheType.HOLDER) {
+            if (cache != null && cacheKey != null) {
                 storeRequestCache(body, cache, cacheKey);
             }
             return true;
@@ -531,7 +554,7 @@ public class Tina {
             handler.postAtTime(new Runnable() {
                 @Override
                 public void run() {
-                    callback.onFail(new TinaException(filterResult.errorCode, filterResult.errorMsg));
+                    sCallback.onFail(new TinaException(filterResult.errorCode, filterResult.errorMsg));
                     if (endCallBack != null && concurrentEnd()) {
                         endCallBack.end();
                     }
@@ -546,9 +569,6 @@ public class Tina {
      * 链式请求
      **/
     private void chainsRequests() {
-        if (tinaBaseRequests.size() != tinaChainCallBacks.size()) {
-            throw new IllegalArgumentException("The number of requests do not match , CHAIN");
-        }
         Collections.reverse(tinaBaseRequests);
         Collections.reverse(tinaChainCallBacks);
         if (startCallBack != null) {
@@ -560,7 +580,13 @@ public class Tina {
     private void chainRequest(int index, final Object preResult) {
         final int nextIndex = index - 1;
         final TinaBaseRequest chainRequest = tinaBaseRequests.remove(index);
-        final TinaChainCallBack chainCallBack = tinaChainCallBacks.remove(index);
+        final TinaChainCallBack chainCallBack;
+        if (index < tinaChainCallBacks.size()) {
+            chainCallBack = tinaChainCallBacks.remove(index);
+        }
+        else {
+            chainCallBack = null;
+        }
 
         Schedulers.subscribeOn(Schedulers.IO)
                 .callback(new Schedulers.ScheduleCallBack() {
@@ -624,14 +650,11 @@ public class Tina {
                          * 缓存数据返回
                          */
                         if (cache != null && getConfig().mDiskCache != null) {
-                            CacheType cacheType = cache.type();
-                            byte[] cacheResponse = getConfig().mDiskCache.getAsBinary(cacheKey);
+                            byte[] cacheResponse = getCacheBytes(cacheKey);
                             if (cacheResponse != null) {
-                                if (cacheType == CacheType.TARGET) {
-                                    boolean s = mapChainRequest(cacheResponse, chainCallBack, chainRequest, preResult, nextIndex, null, cacheKey);
-                                    if (s) {
-                                        return null;
-                                    }
+                                boolean s = mapChainRequest(cacheResponse, chainCallBack, chainRequest, preResult, nextIndex, null, cacheKey);
+                                if (s) {
+                                    return null;
                                 }
                             }
                         }
@@ -652,7 +675,9 @@ public class Tina {
                     handler.postAtTime(new Runnable() {
                         @Override
                         public void run() {
-                            chainCallBack.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
+                            if (chainCallBack != null) {
+                                chainCallBack.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
+                            }
                         }
                     }, tag, SystemClock.uptimeMillis());
                 } catch (Exception e1) {
@@ -675,7 +700,9 @@ public class Tina {
                     handler.postAtTime(new Runnable() {
                         @Override
                         public void run() {
-                            chainCallBack.onFail(new TinaException(TinaException.OTHER_EXCEPTION, response.code() + " " + response.message()));
+                            if (chainCallBack != null) {
+                                chainCallBack.onFail(new TinaException(TinaException.OTHER_EXCEPTION, response.code() + " " + response.message()));
+                            }
                             if (endCallBack != null) {
                                 handler.postAtTime(new Runnable() {
                                     @Override
@@ -696,7 +723,9 @@ public class Tina {
                     handler.postAtTime(new Runnable() {
                         @Override
                         public void run() {
-                            chainCallBack.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
+                            if (chainCallBack != null) {
+                                chainCallBack.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
+                            }
                             if (endCallBack != null) {
                                 handler.postAtTime(new Runnable() {
                                     @Override
@@ -718,6 +747,29 @@ public class Tina {
     private boolean mapChainRequest(byte[] body, final TinaChainCallBack chainCallBack,
                                     TinaBaseRequest chainRequest, final Object result, final int nextIndex, Cache cache, String cacheKey) {
 
+        Class clazz;
+        if (chainCallBack != null) {
+            clazz = chainCallBack.getClass();
+        } else {
+            handler.postAtTime(new Runnable() {
+                @Override
+                public void run() {
+                    if (tinaBaseRequests.size() <= 0) {
+                        if (endCallBack != null) {
+                            endCallBack.end();
+                        }
+                    } else {
+                        chainRequest(nextIndex, null);
+                    }
+                }
+            }, tag, SystemClock.uptimeMillis());
+
+            if (cache != null && cacheKey != null) {
+                storeRequestCache(body, cache, cacheKey);
+            }
+            return true;
+        }
+
         final TinaFilterResult filterResult = filter(chainRequest, body, ClassUtils.getGenericType(chainCallBack.getClass()));
         final Object tr = filterResult.response;
         if (filterResult.code == FilterCode.SUCCESS) {
@@ -728,7 +780,10 @@ public class Tina {
             handler.postAtTime(new Runnable() {
                 @Override
                 public void run() {
-                    Object chainResult = chainCallBack.onSuccess(result, tr);
+                    Object chainResult = null;
+                    if (chainCallBack != null) {
+                        chainResult = chainCallBack.onSuccess(result, tr);
+                    }
                     if ((chainResult != null && chainResult instanceof String && TinaChain.FUSING.equals(chainResult)) || tinaBaseRequests.size() <= 0) {
                         if (endCallBack != null) {
                             endCallBack.end();
@@ -746,7 +801,7 @@ public class Tina {
             /**
              * 缓存服务端返回的数据
              */
-            if (cache != null && cacheKey != null && cache.type() != CacheType.HOLDER) {
+            if (cache != null && cacheKey != null) {
                 storeRequestCache(body, cache, cacheKey);
             }
             return true;
@@ -761,7 +816,9 @@ public class Tina {
             handler.postAtTime(new Runnable() {
                 @Override
                 public void run() {
-                    chainCallBack.onFail(new TinaException(filterResult.errorCode, filterResult.errorMsg));
+                    if (chainCallBack != null) {
+                        chainCallBack.onFail(new TinaException(filterResult.errorCode, filterResult.errorMsg));
+                    }
                     if (endCallBack != null) {
                         endCallBack.end();
                     }
@@ -775,11 +832,7 @@ public class Tina {
     /**
      * 单个请求
      **/
-    private void singleRequest() {
-
-        if (callBack != null && cacheCallBack != null) {
-            throw new IllegalArgumentException("singleCallback and cacheSingleCallback can't exist at the same time");
-        }
+    private void singleRequest(final TinaBaseRequest sRequest, final TinaSingleCallBack sCallback) {
 
         if (startCallBack != null) {
             startCallBack.start();
@@ -810,35 +863,35 @@ public class Tina {
                         Delete delete = null;
 
                         String url = null;
-                        if ((get = tinaRequest.getClass().getAnnotation(Get.class)) != null) {
+                        if ((get = sRequest.getClass().getAnnotation(Get.class)) != null) {
                             String host = targetHost == null ? getConfig().hostUrl : targetHost;
-                            url = host + UrlUtils.generatePathWithParams(get.value(), tinaRequest);
-                        } else if ((post = tinaRequest.getClass().getAnnotation(Post.class)) != null) {
+                            url = host + UrlUtils.generatePathWithParams(get.value(), sRequest);
+                        } else if ((post = sRequest.getClass().getAnnotation(Post.class)) != null) {
                             String host = targetHost == null ? getConfig().hostUrl : targetHost;
-                            url = host + UrlUtils.generatePathWithoutParams(post.value(), tinaRequest);
-                        } else if ((delete = tinaRequest.getClass().getAnnotation(Delete.class)) != null) {
+                            url = host + UrlUtils.generatePathWithoutParams(post.value(), sRequest);
+                        } else if ((delete = sRequest.getClass().getAnnotation(Delete.class)) != null) {
                             String host = targetHost == null ? getConfig().hostUrl : targetHost;
-                            url = host + UrlUtils.generatePathWithParams(delete.value(), tinaRequest);
-                        } else if ((put = tinaRequest.getClass().getAnnotation(Put.class)) != null) {
+                            url = host + UrlUtils.generatePathWithParams(delete.value(), sRequest);
+                        } else if ((put = sRequest.getClass().getAnnotation(Put.class)) != null) {
                             String host = targetHost == null ? getConfig().hostUrl : targetHost;
-                            url = host + UrlUtils.generatePathWithoutParams(put.value(), tinaRequest);
-                        } else if ((patch = tinaRequest.getClass().getAnnotation(Patch.class)) != null) {
+                            url = host + UrlUtils.generatePathWithoutParams(put.value(), sRequest);
+                        } else if ((patch = sRequest.getClass().getAnnotation(Patch.class)) != null) {
                             String host = targetHost == null ? getConfig().hostUrl : targetHost;
-                            url = host + UrlUtils.generatePathWithoutParams(patch.value(), tinaRequest);
+                            url = host + UrlUtils.generatePathWithoutParams(patch.value(), sRequest);
                         } else {
                             throw new IllegalArgumentException("request annotation is not exist");
                         }
                         final String cacheKey;
-                        final Cache cache = tinaRequest.getClass().getAnnotation(Cache.class);
+                        final Cache cache = sRequest.getClass().getAnnotation(Cache.class);
                         if (cache != null) {
                             if (getConfig().mDiskCache == null) {
-                                throw new IllegalArgumentException("please check okhttp cache config is right , #" + tinaRequest.getClass().getCanonicalName());
+                                throw new IllegalArgumentException("please check okhttp cache config is right , #" + sRequest.getClass().getCanonicalName());
                             }
                             String cacheTempKey = null;
                             if (cache == null || "".equals(cache.key())) {
                                 cacheTempKey = url;
                             } else {
-                                cacheTempKey = UrlUtils.generatePathWithoutParams(cache.key(), tinaRequest);
+                                cacheTempKey = UrlUtils.generatePathWithoutParams(cache.key(), sRequest);
                             }
                             cacheKey = cacheTempKey;
                         } else {
@@ -849,16 +902,11 @@ public class Tina {
                          * 缓存数据返回
                          */
                         if (cache != null && getConfig().mDiskCache != null) {
-                            CacheType cacheType = cache.type();
-                            byte[] cacheResponse = getConfig().mDiskCache.getAsBinary(cacheKey);
+                            byte[] cacheResponse = getCacheBytes(cacheKey);
                             if (cacheResponse != null) {
-                                if (cacheType == CacheType.HOLDER) {
-                                    if (cacheCallBack != null) {
-                                        mapSingleCacheRequest(cacheResponse);
-                                    } else {
-                                        throw new IllegalArgumentException("you must set a singleCacheCallBack in a holder cache request");
-                                    }
-                                } else if (cacheType == CacheType.TARGET) {
+                                if (sCallback != null && sCallback instanceof TinaSingleCacheCallBack) {
+                                    onHoldCacheReturn(sRequest , cacheResponse , (TinaSingleCacheCallBack) sCallback);
+                                } else {
                                     boolean s = mapSingleRequest(cacheResponse, null, cacheKey);
                                     /**
                                      * 如果缓存出现不匹配的问题(不确定的缓存规则改变)，则重新请求
@@ -869,7 +917,7 @@ public class Tina {
                                 }
                             }
                         }
-                        return new Pack(post, get, put, patch, delete, url, cacheKey, cache, convertRequest(JSONHelper.objToJson(tinaRequest)));
+                        return new Pack(post, get, put, patch, delete, url, cacheKey, cache, convertRequest(JSONHelper.objToJson(sRequest)));
                     }
                 });
     }
@@ -887,8 +935,6 @@ public class Tina {
                         public void run() {
                             if (callBack != null) {
                                 callBack.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
-                            } else if (cacheCallBack != null) {
-                                cacheCallBack.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
                             }
                         }
                     }, tag, SystemClock.uptimeMillis());
@@ -914,8 +960,6 @@ public class Tina {
                         public void run() {
                             if (callBack != null) {
                                 callBack.onFail(new TinaException(TinaException.OTHER_EXCEPTION, response.code() + " " + response.message()));
-                            } else if (cacheCallBack != null) {
-                                cacheCallBack.onFail(new TinaException(TinaException.OTHER_EXCEPTION, response.code() + " " + response.message()));
                             }
                             if (endCallBack != null) {
                                 handler.postAtTime(new Runnable() {
@@ -939,8 +983,6 @@ public class Tina {
                         public void run() {
                             if (callBack != null) {
                                 callBack.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
-                            } else if (cacheCallBack != null) {
-                                cacheCallBack.onFail(new TinaException(TinaException.IOEXCEPTION, e.getMessage()));
                             }
                             if (endCallBack != null) {
                                 handler.post(new Runnable() {
@@ -964,8 +1006,6 @@ public class Tina {
         Class clazz;
         if (callBack != null) {
             clazz = callBack.getClass();
-        } else if (cacheCallBack != null) {
-            clazz = cacheCallBack.getClass();
         } else {
             handler.postAtTime(new Runnable() {
                 @Override
@@ -995,8 +1035,6 @@ public class Tina {
                 public void run() {
                     if (callBack != null) {
                         callBack.onSuccess(respBody);
-                    } else if (cacheCallBack != null) {
-                        cacheCallBack.onSuccess(respBody);
                     }
                     if (endCallBack != null) {
                         endCallBack.end();
@@ -1023,8 +1061,6 @@ public class Tina {
                 public void run() {
                     if (callBack != null) {
                         callBack.onFail(new TinaException(filterResult.errorCode, filterResult.errorMsg));
-                    } else if (cacheCallBack != null) {
-                        cacheCallBack.onFail(new TinaException(filterResult.errorCode, filterResult.errorMsg));
                     }
                     if (endCallBack != null) {
                         endCallBack.end();
@@ -1038,23 +1074,20 @@ public class Tina {
 
     /**
      * 缓存服务端返回的数据
+     *
      * @param bytes
      * @param cache
      * @param cacheKey
      */
-    private void storeRequestCache(byte[] bytes, Cache cache, String cacheKey) {
-        CacheType cacheType = cache.type();
-        if (cacheType == CacheType.TARGET) {
-            int expire = cache.expire();
-            TimeUnit unit = cache.unit();
-            if (expire > 0) {
-                getConfig().mDiskCache.put(cacheKey, bytes, (int) TimeUnit.SECONDS.convert(expire, unit));
-            } else {
-                getConfig().mDiskCache.put(cacheKey, bytes);
-            }
-        } else if (cacheType == CacheType.HOLDER) {
+    private synchronized void storeRequestCache(byte[] bytes, Cache cache, String cacheKey) {
+        int expire = cache.expire();
+        TimeUnit unit = cache.unit();
+        if (expire > 0) {
+            getConfig().mDiskCache.put(cacheKey, bytes, (int) TimeUnit.SECONDS.convert(expire, unit));
+        } else {
             getConfig().mDiskCache.put(cacheKey, bytes);
         }
+
     }
 
     /**
@@ -1115,13 +1148,8 @@ public class Tina {
         return request;
     }
 
-    /**
-     * 缓存双回调
-     *
-     * @param bytes
-     */
-    private void mapSingleCacheRequest(byte[] bytes) {
-        final TinaFilterResult filterResult = filter(tinaRequest, bytes, ClassUtils.getGenericType(cacheCallBack.getClass()));
+    private void onHoldCacheReturn(TinaBaseRequest sRequest , byte[] bytes , final TinaSingleCacheCallBack cacheCallBack) {
+        final TinaFilterResult filterResult = filter(sRequest, bytes, ClassUtils.getGenericType(cacheCallBack.getClass()));
         final Object respBody = filterResult.response;
         if (filterResult.code == FilterCode.SUCCESS) {
             if (respBody != null && respBody.getClass().isAnnotationPresent(AutoMode.class)) {
