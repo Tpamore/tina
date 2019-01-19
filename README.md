@@ -347,7 +347,6 @@ Tina.build()
         .request();
 ```
 - key缺省值为 - url(支持Tina restful语法构建)
-- type缺省值为 - CacheType.TARGET
 - expire缺省值为 - 永久
 - unit缺省值为 - TimeUnit.SECONDS
 
