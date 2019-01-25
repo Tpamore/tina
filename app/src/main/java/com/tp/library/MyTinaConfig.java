@@ -2,6 +2,7 @@ package com.tp.library;
 
 import android.content.Context;
 
+import com.readystatesoftware.chuck.ChuckInterceptor;
 import com.tpa.client.tina.TinaConfig;
 import com.tpa.client.tina.TinaConvert;
 import com.tpa.client.tina.TinaFilter;
@@ -33,7 +34,8 @@ public class MyTinaConfig implements TinaConfig{
                 .cache(new Cache(context.getCacheDir() , 1024 * 1024 * 20)) //缓存区大小配置
                 .connectTimeout(30000L, TimeUnit.MILLISECONDS)
                 .readTimeout(30000L, TimeUnit.MILLISECONDS)
-                .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))//日志打印
+                .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))//后台日志
+                .addInterceptor(new ChuckInterceptor(context)) // 前台日志
                 .build();
         return client;
     }

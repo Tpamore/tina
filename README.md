@@ -4,14 +4,14 @@
 1.  构造式编码。
 2.  支持链式请求。
 3.  支持并发式请求。
-4.  注解式request。
-5.  response数自动校验&逻辑处理&数据注入。
+4.  注解式request&response。
+5.  response数据校验&数据注入。
 6.  支持restful风格。
-7.  请求本地缓存。
-8. 请求生命周期可伴随activity。
+7.  数据本地可强缓存。
+8.  请求生命周期可伴随activity。
 
 ## change
-### 1.1.0-beta
+### 1.1.1-beta
 - 合并HOLD和TARGET的缓存策略，简化使用繁琐度。
 - 修复在多线程读写请求缓存时，小几率出现数据错乱的bug。
 - 优化了部分代码
@@ -19,7 +19,7 @@
 ## 引用
 ```groovy
 dependencies {
-    api 'com.tpa.client:tina:1.1.0-beta'
+    api 'com.tpa.client:tina:1.1.1-beta'
     annotationProcessor 'com.tpa.client:tina-compiler:1.0.0'
 
 }
