@@ -23,7 +23,7 @@
 ## 引用
 ```groovy
 dependencies {
-    api 'com.tpa.client:tina:1.1.1-beta'
+    api 'com.tpa.client:tina:1.1.2-beta'
     annotationProcessor 'com.tpa.client:tina-compiler:1.0.0'
 
 }
