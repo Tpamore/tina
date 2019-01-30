@@ -12,14 +12,19 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
 
-import com.tpa.client.tina.annotation.AnnotationTools;
+import com.tpa.client.tina.annotation.AutoModelTool;
 import com.tpa.client.tina.annotation.AutoMode;
 import com.tpa.client.tina.annotation.Cache;
 import com.tpa.client.tina.annotation.Delete;
 import com.tpa.client.tina.annotation.Get;
+import com.tpa.client.tina.annotation.NotNull;
+import com.tpa.client.tina.annotation.NotNullHandler;
+import com.tpa.client.tina.annotation.NumberScale;
+import com.tpa.client.tina.annotation.NumberScaleHandler;
 import com.tpa.client.tina.annotation.Patch;
 import com.tpa.client.tina.annotation.Post;
 import com.tpa.client.tina.annotation.Put;
+import com.tpa.client.tina.annotation.TinaAnnotationManager;
 import com.tpa.client.tina.callback.TinaChainCallBack;
 import com.tpa.client.tina.callback.TinaEndCallBack;
 import com.tpa.client.tina.callback.TinaSingleCacheCallBack;
@@ -102,6 +107,8 @@ public class Tina {
                 defaultConfig.mDiskCache = ACache.get(defaultConfig.mClient.cache().directory());
             }
             defaultConfig.mRequestConvert = config.getRequestConvert();
+            TinaAnnotationManager.getInstance().register(NumberScale.class , new NumberScaleHandler());
+            TinaAnnotationManager.getInstance().register(NotNull.class , new NotNullHandler());
         } else {
             throw new NullPointerException("init config is null");
         }
@@ -122,7 +129,7 @@ public class Tina {
             String key = configId.value();
 
             if (TextUtils.isEmpty(key)) {
-                throw new NullPointerException("config annotation value is null");
+                throw new NullPointerException("config annotation message is null");
             }
 
             if (configMap.containsKey(key)) {
@@ -527,7 +534,14 @@ public class Tina {
         final Object tr = filterResult.response;
         if (filterResult.code == FilterCode.SUCCESS) {
             if (tr != null && tr.getClass().isAnnotationPresent(AutoMode.class)) {
-                AnnotationTools.inflateClassBean(tr.getClass(), tr);
+                try {
+                    AutoModelTool.inflateClassBean(tr.getClass(), tr);
+                } catch (TinaDataException e) {
+                    filterResult.code = FilterCode.FAIL;
+                    filterResult.errorMsg = e.getMessage();
+                    filterResult.errorCode = TinaException.DATA_EXCEPTION;
+                    return concurrentFail(sCallback, cache, cacheKey, filterResult);
+                }
             }
             handler.postAtTime(new Runnable() {
                 @Override
@@ -547,22 +561,26 @@ public class Tina {
             }
             return true;
         } else {
-            if (cache == null && cacheKey != null) {
-                clearErrorCacheData(cacheKey);
-                return false;
-            }
-            handler.postAtTime(new Runnable() {
-                @Override
-                public void run() {
-                    sCallback.onFail(new TinaException(filterResult.errorCode, filterResult.errorMsg));
-                    if (endCallBack != null && concurrentEnd()) {
-                        endCallBack.end();
-                    }
-                }
-            }, tag, SystemClock.uptimeMillis());
-            return true;
+            return concurrentFail(sCallback, cache, cacheKey, filterResult);
         }
 
+    }
+
+    private boolean concurrentFail(final TinaSingleCallBack sCallback, Cache cache, String cacheKey, final TinaFilterResult filterResult) {
+        if (cache == null && cacheKey != null) {
+            clearErrorCacheData(cacheKey);
+            return false;
+        }
+        handler.postAtTime(new Runnable() {
+            @Override
+            public void run() {
+                sCallback.onFail(new TinaException(filterResult.errorCode, filterResult.errorMsg));
+                if (endCallBack != null && concurrentEnd()) {
+                    endCallBack.end();
+                }
+            }
+        }, tag, SystemClock.uptimeMillis());
+        return true;
     }
 
     /**
@@ -774,7 +792,14 @@ public class Tina {
         final Object tr = filterResult.response;
         if (filterResult.code == FilterCode.SUCCESS) {
             if (tr != null && tr.getClass().isAnnotationPresent(AutoMode.class)) {
-                AnnotationTools.inflateClassBean(tr.getClass(), tr);
+                try {
+                    AutoModelTool.inflateClassBean(tr.getClass(), tr);
+                } catch (TinaDataException e) {
+                    filterResult.code = FilterCode.FAIL;
+                    filterResult.errorMsg = e.getMessage();
+                    filterResult.errorCode = TinaException.DATA_EXCEPTION;
+                    return chainFail(chainCallBack, cache, cacheKey, filterResult);
+                }
             }
 
             handler.postAtTime(new Runnable() {
@@ -807,25 +832,28 @@ public class Tina {
             return true;
 
         } else {
-
-            if (cache == null && cacheKey != null) {
-                clearErrorCacheData(cacheKey);
-                return false;
-            }
-
-            handler.postAtTime(new Runnable() {
-                @Override
-                public void run() {
-                    if (chainCallBack != null) {
-                        chainCallBack.onFail(new TinaException(filterResult.errorCode, filterResult.errorMsg));
-                    }
-                    if (endCallBack != null) {
-                        endCallBack.end();
-                    }
-                }
-            }, tag, SystemClock.uptimeMillis());
-            return true;
+            return chainFail(chainCallBack, cache, cacheKey, filterResult);
         }
+    }
+
+    private boolean chainFail(final TinaChainCallBack chainCallBack, Cache cache, String cacheKey, final TinaFilterResult filterResult) {
+        if (cache == null && cacheKey != null) {
+            clearErrorCacheData(cacheKey);
+            return false;
+        }
+
+        handler.postAtTime(new Runnable() {
+            @Override
+            public void run() {
+                if (chainCallBack != null) {
+                    chainCallBack.onFail(new TinaException(filterResult.errorCode, filterResult.errorMsg));
+                }
+                if (endCallBack != null) {
+                    endCallBack.end();
+                }
+            }
+        }, tag, SystemClock.uptimeMillis());
+        return true;
     }
 
 
@@ -1027,7 +1055,14 @@ public class Tina {
         final Object respBody = filterResult.response;
         if (filterResult.code == FilterCode.SUCCESS) {
             if (respBody != null && respBody.getClass().isAnnotationPresent(AutoMode.class)) {
-                AnnotationTools.inflateClassBean(respBody.getClass(), respBody);
+                try {
+                    AutoModelTool.inflateClassBean(respBody.getClass(), respBody);
+                } catch (TinaDataException e) {
+                    filterResult.code = FilterCode.FAIL;
+                    filterResult.errorCode = TinaException.DATA_EXCEPTION;
+                    filterResult.errorMsg = e.getMessage();
+                    return singleFail(cache, cacheKey, filterResult);
+                }
             }
 
             handler.postAtTime(new Runnable() {
@@ -1049,27 +1084,31 @@ public class Tina {
             return true;
 
         } else {
-            /**
-             * 如果缓存数据报错 则清空缓存数据
-             */
-            if (cache == null && cacheKey != null) {
-                clearErrorCacheData(cacheKey);
-                return false;
-            }
-            handler.postAtTime(new Runnable() {
-                @Override
-                public void run() {
-                    if (callBack != null) {
-                        callBack.onFail(new TinaException(filterResult.errorCode, filterResult.errorMsg));
-                    }
-                    if (endCallBack != null) {
-                        endCallBack.end();
-                    }
-                }
-            }, tag, SystemClock.uptimeMillis());
-            return true;
+            return singleFail(cache, cacheKey, filterResult);
         }
 
+    }
+
+    private boolean singleFail(Cache cache, String cacheKey, final TinaFilterResult filterResult) {
+        /**
+         * 如果缓存数据报错 则清空缓存数据
+         */
+        if (cache == null && cacheKey != null) {
+            clearErrorCacheData(cacheKey);
+            return false;
+        }
+        handler.postAtTime(new Runnable() {
+            @Override
+            public void run() {
+                if (callBack != null) {
+                    callBack.onFail(new TinaException(filterResult.errorCode, filterResult.errorMsg));
+                }
+                if (endCallBack != null) {
+                    endCallBack.end();
+                }
+            }
+        }, tag, SystemClock.uptimeMillis());
+        return true;
     }
 
     /**
@@ -1153,7 +1192,11 @@ public class Tina {
         final Object respBody = filterResult.response;
         if (filterResult.code == FilterCode.SUCCESS) {
             if (respBody != null && respBody.getClass().isAnnotationPresent(AutoMode.class)) {
-                AnnotationTools.inflateClassBean(respBody.getClass(), respBody);
+                try {
+                    AutoModelTool.inflateClassBean(respBody.getClass(), respBody);
+                } catch (TinaDataException e) {
+                    return;
+                }
             }
 
             handler.postAtTime(new Runnable() {

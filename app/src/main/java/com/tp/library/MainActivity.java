@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.tpa.client.tina.Tina;
 import com.tpa.client.tina.TinaException;
@@ -70,7 +71,7 @@ public class MainActivity extends Activity {
 
                     @Override
                     public void onFail(TinaException exception) {
-                        Log.d(TAG, "onFail: 1");
+                        Toast.makeText(MainActivity.this , exception.getErrorMsg() , Toast.LENGTH_LONG).show();
                     }
                 })
                 .request();
@@ -102,7 +103,7 @@ public class MainActivity extends Activity {
 
                     @Override
                     public void onFail(TinaException exception) {
-                        Log.d(TAG, "onFail: 1");
+                        Toast.makeText(MainActivity.this , exception.getErrorMsg() , Toast.LENGTH_LONG).show();
                     }
                 })
                 .callBack(new TinaSingleCallBack<LoginContract.Response>() {
@@ -124,7 +125,7 @@ public class MainActivity extends Activity {
 
                     @Override
                     public void onFail(TinaException exception) {
-                        Log.d(TAG, "onFail: 3");
+                        Toast.makeText(MainActivity.this , exception.getErrorMsg() , Toast.LENGTH_LONG).show();
                     }
                 })
                 .request();
@@ -159,7 +160,7 @@ public class MainActivity extends Activity {
 
                     @Override
                     public void onFail(TinaException exception) {
-                        Log.d(TAG, "onFail: 1");
+                        Toast.makeText(MainActivity.this , exception.getErrorMsg() , Toast.LENGTH_LONG).show();
                     }
                 })
                 .callBack(new TinaChainCallBack<LoginContract.Response>() {
@@ -171,7 +172,7 @@ public class MainActivity extends Activity {
 
                     @Override
                     public void onFail(TinaException exception) {
-                        Log.d(TAG, "onFail: 2");
+                        Toast.makeText(MainActivity.this , exception.getErrorMsg() , Toast.LENGTH_LONG).show();
                     }
                 })
                 .callBack(new TinaChainCallBack<LoginContract.Response>() {
@@ -183,7 +184,7 @@ public class MainActivity extends Activity {
 
                     @Override
                     public void onFail(TinaException exception) {
-                        Log.d(TAG, "onFail: 3");
+                        Toast.makeText(MainActivity.this , exception.getErrorMsg() , Toast.LENGTH_LONG).show();
                     }
                 })
                 .request();

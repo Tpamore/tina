@@ -7,7 +7,8 @@ package com.tpa.client.tina;
 public class TinaException {
 
     public static final int IOEXCEPTION = -0X101;
-    public static final int OTHER_EXCEPTION = -0X102;
+    public static final int DATA_EXCEPTION = -0X102;
+    public static final int OTHER_EXCEPTION = -0X103;
 
     private int code;
     private String errorMsg;
