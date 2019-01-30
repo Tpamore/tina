@@ -146,6 +146,8 @@ public class Tina {
             }
             cf.mRequestConvert = config.getRequestConvert();
             configMap.put(key, cf);
+            TinaAnnotationManager.getInstance().register(NumberScale.class , new NumberScaleHandler());
+            TinaAnnotationManager.getInstance().register(NotNull.class , new NotNullHandler());
         } else {
             throw new NullPointerException("add config is null");
         }

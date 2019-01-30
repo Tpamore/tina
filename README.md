@@ -16,6 +16,10 @@
 - 修复在多线程读写请求缓存时，小几率出现数据错乱的bug。
 - 优化了部分代码
 
+### 1.1.2-beta
+- 现在可以拓展@AutoModel模式下自定义注解了。
+- 增加一个@AutoModel模式下自定义注解@NotNull。
+
 ## 引用
 ```groovy
 dependencies {
@@ -262,7 +266,8 @@ Tina.build()
 ```
 请求会伴随activity的生命周期消亡而取消
 
-## response注解拓展@AutoModel
+## response的@AutoModel模式
+
 #### 用法
 ```java
 @AutoMode
@@ -291,18 +296,55 @@ do(data.getData1().getData2());
 - 使用@IgnoreInfate可以忽略字段的注入。
 - @AutoModel可以注入集合及集合里的数据(集合嵌套亦支持)。
 
-## response注解拓展@NumberScale
-#### 使用
+### 子注解拓展@NumberScale
+
 ```java
 @AutoMode
-public class AnswererListResponse {
+public class Response {
     @NumberScale(2)
     private String data;
 }
 ```
 - 保留小数位操作，银行家四舍五入算法，支持对string、float、double类型的小数位转换。
 - 只在@AutoMote模式下才生效
-- 支持对集合里的model操作。
+
+### 子注解拓展@NotNull
+```java
+@AutoMode
+public class Response {
+    @NotNull(message = "data字段不能为空")
+    private String data;
+}
+```
+- 如果response被注解的字段为空，则不达成onSuccess回调条件，触发onFail回调。
+- 只在@AutoMote模式下才生效
+
+### 自定义子注解
+
+> 具体请参见@NotNull、@NumberScale的实现
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface NotNull {
+    public String message() default "";
+}
+
+public class NotNullHandler implements TinaAnnotationHandler<NotNull>{
+    @Override
+    public void hanld(NotNull annotation, Object host, Field field) throws TinaDataException{
+        try {
+            Object o = field.get(host);
+            if (o == null) {
+                throw new TinaDataException(annotation.message());
+            }
+        } catch (IllegalAccessException e) {
+        }
+    }
+}
+TinaAnnotationManager.getInstance().register(NotNull.class , new NotNullHandler());
+```
+
 
 ## request缓存注解@Cache
 ```java

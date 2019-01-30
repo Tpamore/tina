@@ -13,11 +13,13 @@ public class TinaAnnotationManager {
         return instance;
     }
 
-    public void register(Class annotation , TinaAnnotationHandler handler) {
-        map.put(annotation.getCanonicalName() , handler);
+    public synchronized void register(Class annotation , TinaAnnotationHandler handler) {
+        if (!map.containsKey(annotation.getCanonicalName())) {
+            map.put(annotation.getCanonicalName() , handler);
+        }
     }
 
-    public void unRegister(Class annotation) {
+    public synchronized void unRegister(Class annotation) {
         map.remove(annotation.getCanonicalName());
     }
 
