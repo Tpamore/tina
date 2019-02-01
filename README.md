@@ -11,14 +11,14 @@
 8.  请求生命周期可伴随activity。
 
 ## change
+### 1.1.2-beta
+- 现在可以拓展@AutoModel模式下自定义注解了。
+- 增加一个@AutoModel模式下自定义注解@NotNull。
+
 ### 1.1.1-beta
 - 合并HOLD和TARGET的缓存策略，简化使用繁琐度。
 - 修复在多线程读写请求缓存时，小几率出现数据错乱的bug。
 - 优化了部分代码
-
-### 1.1.2-beta
-- 现在可以拓展@AutoModel模式下自定义注解了。
-- 增加一个@AutoModel模式下自定义注解@NotNull。
 
 ## 引用
 ```groovy
@@ -162,7 +162,6 @@ Tina.build(Tina.CHAINS)
 #### 注意
 1. 链式请求的addCall与addCallBack是通过构造顺序进行匹配的。
 2. 链式请求中执行到某一个请求fail时则会熔断请求链。
-3. 链式请求通过改变build参数（Tina.CONCURRENT）就可以转换成并发请求，但是返回的feedbackResult值都会变为null。
 
 
 ## 并发式请求
