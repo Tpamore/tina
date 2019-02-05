@@ -1,10 +1,27 @@
-## Tina
+# Tina
 
-Other: [中文版](Chinese Version/README.md)
+## 特点
+1.  构造式编码。
+2.  支持链式请求。
+3.  支持并发式请求。
+4.  注解式request&response。
+5.  response数据校验&数据注入。
+6.  支持restful风格。
+7.  数据本地可强缓存。
+8.  请求生命周期可伴随activity。
+9.  多配置支持。
 
-# Simple API Simple use
+## change
+### 1.1.2-beta
+- 现在可以拓展@AutoModel模式下自定义注解了。
+- 增加一个@AutoModel模式下自定义注解@NotNull。
 
-## How to use
+### 1.1.1-beta
+- 合并HOLD和TARGET的缓存策略，简化使用繁琐度。
+- 修复在多线程读写请求缓存时，小几率出现数据错乱的bug。
+- 优化了部分代码
+
+## 引用
 ```groovy
 dependencies {
     api 'com.tpa.client:tina:1.1.2-beta'
@@ -12,17 +29,17 @@ dependencies {
 
 }
 ```
-## Proguard
+## 混淆
 ```java
 
-## request
+## request混淆
 -keep public class * extends com.tpa.client.tina.model.TinaBaseRequest {
     public void set*(***);
     public *** get*();
     public *** is*();
 }
 
-## response
+## response混淆
 -keep public class * extends ${BaseResponseClass} {
     *;
 }
@@ -30,31 +47,32 @@ dependencies {
 ```
 
 
-## init
+## 初始化
 
 ```java
 public interface TinaConfig {
-    /** okhttpclient config **/
+    /** httpclient配置 **/
     public @NonNull OkHttpClient getOkhttpClient();
 
-    /** mediaType config **/
+    /** mediaType配置 **/
     public @NonNull MediaType getMediaType();
 
-    /** host url **/
+    /** 根地址 **/
     public @NonNull String getHost();
 
+    /** 成功请求过滤 **/
     public @Nonable TinaFilter getTinaFilter();
 
-    /** It is typically used to encrypt the request body data **/
+    /** request数据转换器,一般用来加密请求body数据 **/
     public @Nullable TinaConvert getRequestConvert();
 }
 
 Tina.initConfig(tinaConfig);   
 ```
 
-## Single request
+## 简单请求
 
-#### The flow chart
+#### 流程图示
 
 ![lc](png/1.jpg)
 
@@ -88,12 +106,13 @@ Tina.build()
 
 ```
 
-## Chain request
+## 链式请求
 
-#### The flow chart
+#### 流程图示
 
 ![lc1](png/2.jpg)
 
+#### 代码实现
 ```java
 @Post("url")
 public class Reqest extends TinaBaseRequest{
@@ -103,7 +122,7 @@ public class Reqest extends TinaBaseRequest{
         
  }
     
-------------------------------------------
+----------------------------------------
 
 Reqest request = new Reqest();
 Tina.build(Tina.CHAINS)
@@ -136,15 +155,21 @@ Tina.build(Tina.CHAINS)
 
 
 #### TinaChainCallBack
-- feedbackResult : The result passed from the previous request
-- return : The result passed to the next request. If TinaChain.FUSING is returned, the chain request is interrupted.
+- feedbackResult : 上一个请求传递过来的结果，没有则为null
+- response : 本次请求的结果
+- return : 传递给下个请求的结果，没有则返回null。返回TinaChain.FUSING则打断链式请求。
+
+#### 注意
+1. 链式请求的addCall与addCallBack是通过构造顺序进行匹配的。
+2. 链式请求中执行到某一个请求fail时则会熔断请求链。
 
 
-## Concurrent request
-#### The flow chart
+## 并发式请求
+#### 流程图示
 
 ![lc2](png/3.jpg)
 
+#### 代码实现
 ```java
 @Post("url")
 public class Reqest extends TinaBaseRequest{
@@ -181,7 +206,7 @@ Tina.build(Tina.CONCURRENT)
         .request();
 ```
 
-## startCallBack and endCallBack
+## 统一的开始回调和结束回调
 ```java
 ...
 .startCallBack(new TinaStartCallBack() {
@@ -197,7 +222,7 @@ Tina.build(Tina.CONCURRENT)
 ...
 ```
 
-## filter
+## 过滤器
 
 ```java
 Tina.build()
@@ -209,9 +234,11 @@ Tina.build()
                 })
          ...
 ```
-### Customize the response class type
+## 通过过滤器定制response类型
 ```java
-
+         /**
+         * 请求数据类型是bitmap类型
+         */
         Tina.build()
                 .filter(BitmapFilter.build())
                 .callBack(request)
@@ -236,19 +263,19 @@ Tina.build()
                 .deamon(activity)
                 ...
 ```
-A request will be cancelled with the activity's destoryed
+请求会伴随activity的生命周期消亡而取消
 
-## @AutoModel
+## response的@AutoModel模式
 
-#### how to use
+#### 用法
 ```java
 @AutoMode
 public class AnswererListResponse {
 }
 ```
-The @Automodel annotated resposne recursively loops around the entire response model, filling in all the empty objects.
+被@AutoModel注解的resposne会递归遍历整个response model，填充所有空对象。
 
-#### Before
+#### 使用前
 ```java
 if(data != null && data.getData1() != null && data.getData1().getData2 != null){
     do(data.getData1().getData2());
@@ -257,35 +284,43 @@ else{
     //do somethings
 }
 ```
-#### After
+#### 使用后
 ```java
 do(data.getData1().getData2());
 ```
-#### @IgnoreInfate
-Ignore inject
+#### 注意
+- @AutoModel不会注入递归字段。
+- @AutoModel不会注入静态字段。
+- @AutoModel不会注入java.lang包下的基本类型字段(Float、Integer、Long、Double等)。
+- 使用@IgnoreInfate可以忽略字段的注入。
+- @AutoModel可以注入集合及集合里的数据(集合嵌套亦支持)。
 
-### @NumberScale
+### 子注解拓展@NumberScale
 
 ```java
 @AutoMode
 public class Response {
     @NumberScale(2)
-    private String data = 3.1415926; // 3.14
-}
-```
-
-### @NotNull
-```java
-@AutoMode
-public class Response {
-    @NotNull(message = "data field cannot be empty")
     private String data;
 }
 ```
+- 保留小数位操作，银行家四舍五入算法，支持对string、float、double类型的小数位转换。
+- 只在@AutoMote模式下才生效
 
-### Custom annotations
+### 子注解拓展@NotNull
+```java
+@AutoMode
+public class Response {
+    @NotNull(message = "data字段不能为空")
+    private String data;
+}
+```
+- 如果response被注解的字段为空，则不达成onSuccess回调条件，触发onFail回调。
+- 只在@AutoMote模式下才生效
 
-> See the implementation of @notnull and @numberscale for details
+### 自定义子注解
+
+> 具体请参见@NotNull、@NumberScale的实现
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -310,7 +345,7 @@ TinaAnnotationManager.getInstance().register(NotNull.class , new NotNullHandler(
 ```
 
 
-## @Cache
+## request缓存注解@Cache
 ```java
 @Cache(key = "key" , expire = 1000 , unit = TimeUnit.SECONDS)
 public class Request extends TinaBaseRequest {
@@ -318,7 +353,7 @@ public class Request extends TinaBaseRequest {
 }
 Request request = new Request();
 
-// If the cache is hit, no network request is called. Single CallBack
+// 单回调  命中缓存则不会发起网络请求
 Tina.build()
         .call(request)
         .callBack(new TinaSingleCallBack<Response>() {
@@ -333,7 +368,7 @@ Tina.build()
         })
         .request();
 
-// A network request is called regardless of whether the cache is hit or not. Double CallBack
+// 双回调 无论命中缓存与否 都会发起网络请求
 Tina.build()
         .call(request)
         .callBack(new TinaSingleCacheCallBack<Response>() {
@@ -352,12 +387,16 @@ Tina.build()
         })
         .request();
 ```
+- key缺省值为 - url(支持Tina restful语法构建)
+- expire缺省值为 - 永久
+- unit缺省值为 - TimeUnit.SECONDS
 
-## about restful
-> support `POST`、`GET`、`PUT`、`DELETE`、`PATCH`。
+## 关于restful
+> 支持 `POST`、`GET`、`PUT`、`DELETE`、`PATCH`请求。
+> 支持restful语义构建。
 
 
-### Grammar 1
+### 语法1
 ```java
     @Delete("/name/{name}/sex/{sex}")
     public class Reqest extends TinaBaseRequest{
@@ -373,7 +412,7 @@ Tina.build()
     >>> DELETE /name/tqf/sex/man
 ```
 
-### Grammar 2
+### 语法2
 ```java
     @Delete("/name/:name/sex/:sex")
     public class Reqest extends TinaBaseRequest{
@@ -399,7 +438,7 @@ Tina.build()
 ```
 
 
-## Multi-configuration support
+## 多配置支持
 
 ```java
 @ConfigId("Pay")
@@ -414,7 +453,7 @@ Tina.addConfig(new Config());
 
 
 /*
-*  Automatically generate PayTina
+* 编译期 自动生成PayTina  
 */
 PayTina.build()...
 
@@ -424,25 +463,25 @@ PayTina.build()...
 
 ### 导入设置
 
-First, download the settings.jar and keep it local [>>>>> settings.jar](setting/settings.jar)
+首先将settings.jar下载下来保持到本地 [>>>>> settings.jar](setting/settings.jar)
 
-**Open AndroidStudio and select AndroidStudio - File - Import Setttings**
+**打开 AndroidStudio ，选择 Android Studio - File  - Import Setttings**      
 
-Select the setting.jar
+选择你刚刚下载的setting.jar  
 
 ### abbreviation
-- tina_contract : Generate model contract
-- tina_singleReq : Generate a simple request
-- tina_singleReq2 : Generate simple requests with endCallBack and startCallBack
-- tina_chainReq : Generate chain request
-- tina_chainReq2 : Generate chain requests with endCallBack and startCallBack
-- tina_concurrentReq : Generate a concurrent request
-- tina_concurrentReq2 : Generate a concurrent request with endCallBack and startCallBack
+- tina_contract : 生成model contract
+- tina_singleReq : 生成简单请求
+- tina_singleReq2 : 生成带有endCallBack和startCallBack的简单请求
+- tina_chainReq : 生成链式请求
+- tina_chainReq2 : 生成带有endCallBack和startCallBack的链式请求
+- tina_concurrentReq : 生成并发式请求
+- tina_concurrentReq2 : 生成带有endCallBack和startCallBack的并发式请求
 
 ![lc5](png/5.gif)
 ![lc6](png/6.gif)
 
-> Provided as a simple reference, live templates can be modified to suit your business needs
+> 只提供简单参考，可根据自己的业务需求修改live templates
 
-## Email
+## 邮箱
 736969519@qq.com
