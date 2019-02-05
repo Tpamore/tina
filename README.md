@@ -1,6 +1,6 @@
 ## Tina
 
-Other: [中文版](Chinese Version/README.md)
+Other: [中文版](https://github.com/Tpamore/tina/blob/master/Chinese%20Version)
 
 # Simple API Simple use
 
