@@ -74,7 +74,7 @@ Tina.initConfig(tinaConfig);
 
 #### 流程图示
 
-![lc](png/1.jpg)
+![lc](../png/1.jpg)
 
 
 ```java
@@ -110,7 +110,7 @@ Tina.build()
 
 #### 流程图示
 
-![lc1](png/2.jpg)
+![lc1](../png/2.jpg)
 
 #### 代码实现
 ```java
@@ -167,7 +167,7 @@ Tina.build(Tina.CHAINS)
 ## 并发式请求
 #### 流程图示
 
-![lc2](png/3.jpg)
+![lc2](../png/3.jpg)
 
 #### 代码实现
 ```java
@@ -463,7 +463,7 @@ PayTina.build()...
 
 ### 导入设置
 
-首先将settings.jar下载下来保持到本地 [>>>>> settings.jar](setting/settings.jar)
+首先将settings.jar下载下来保持到本地 [>>>>> settings.jar](../setting/settings.jar)
 
 **打开 AndroidStudio ，选择 Android Studio - File  - Import Setttings**      
 
@@ -478,8 +478,8 @@ PayTina.build()...
 - tina_concurrentReq : 生成并发式请求
 - tina_concurrentReq2 : 生成带有endCallBack和startCallBack的并发式请求
 
-![lc5](png/5.gif)
-![lc6](png/6.gif)
+![lc5](../png/5.gif)
+![lc6](../png/6.gif)
 
 > 只提供简单参考，可根据自己的业务需求修改live templates
 
