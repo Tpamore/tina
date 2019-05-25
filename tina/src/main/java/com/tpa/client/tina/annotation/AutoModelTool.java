@@ -95,7 +95,7 @@ public class AutoModelTool {
                 /**
                  * 自定义注解解析
                  */
-                if (field.getAnnotations() != null) {
+                if (field.getAnnotations() != null && field.getAnnotations().length > 0) {
                     for (Annotation annotation : field.getAnnotations()) {
                         TinaAnnotationHandler handler = TinaAnnotationManager.getInstance().getHanlder(annotation.annotationType());
                         handler.hanld(annotation, host, field);
