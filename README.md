@@ -422,7 +422,7 @@ PayTina.build()...
 
 ## live templates
 
-### 导入设置
+### import
 
 First, download the settings.jar and keep it local [>>>>> settings.jar](setting/settings.jar)
 
