@@ -7,7 +7,7 @@ Other: [中文版](https://github.com/Tpamore/tina/blob/master/Chinese%20Version
 ## How to use
 ```groovy
 dependencies {
-    api 'com.tpa.client:tina:1.1.2-beta'
+    api 'com.tpa.client:tina:1.1.2'
     annotationProcessor 'com.tpa.client:tina-compiler:1.0.0'
 
 }

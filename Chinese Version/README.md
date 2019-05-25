@@ -12,9 +12,10 @@
 9.  多配置支持。
 
 ## change
-### 1.1.2-beta
+### 1.1.2
 - 现在可以拓展@AutoModel模式下自定义注解了。
 - 增加一个@AutoModel模式下自定义注解@NotNull。
+- 增加TinaFormConvert，支持form请求的格式。
 
 ### 1.1.1-beta
 - 合并HOLD和TARGET的缓存策略，简化使用繁琐度。
